@@ -153,6 +153,77 @@
         </div>
     </section>
 
+    <section id="theory-section" style="max-width: 1000px; margin: 40px auto; padding: 40px; background: var(--panel); border-radius: 8px; border: 1px solid #334155;">
+        <h2 style="color: var(--curve); border-bottom: 1px solid #334155; padding-bottom: 10px;">Theoretical Framework & Derivation</h2>
+
+        <h3>1. Visualization & Graph Scaling</h3>
+        <p>The vertical bars in the simulation represent physical counts (frequencies) of particles, not direct probabilities. To accurately compare the theoretical Normal distribution to the physical histogram, we must scale the probability density function, <i>f(x)</i>.</p>
+        <p>For a continuous probability density function, the probability of a particle landing in a small interval of width &delta; (the bar size) is approximately the area under the curve in that interval: <strong>Probability &approx; f(x) &times; &delta;</strong>.</p>
+        <p>In statistics, <strong>Relative Frequency</strong> is defined as the number of successful observations (particles in a specific bar, <i>n</i>) divided by the total number of trials (total particles dropped, <i>N</i>). By the Law of Large Numbers, relative frequency approaches probability as N increases:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            Relative Frequency = n / N &approx; Probability<br>
+            n / N &approx; f(x) &times; &delta;<br>
+            n &approx; N &times; f(x) &times; &delta;
+        </div>
+        <p>Therefore, the dotted curve plots the expected count: <i>N &times; f(x) &times; bar size</i>. This allows the mathematical envelope to grow dynamically alongside the accumulating particles.</p>
+
+        <h3>2. The Velocity Distribution</h3>
+        <p>Imagine a gas without any overall flow. The molecules are moving randomly. To find the distribution of velocities, we set up three axes <i>x</i>, <i>y</i>, and <i>z</i>. The velocity is expressed as (V<sub>1</sub>, V<sub>2</sub>, V<sub>3</sub>). Since there is no overall flow and no favored direction, V<sub>1</sub>, V<sub>2</sub>, and V<sub>3</sub> must be independent and identically distributed (IID).</p>
+        <p>Assuming each V<sub>i</sub> has a density <i>f</i>, the joint density is <i>f(v<sub>1</sub>)f(v<sub>2</sub>)f(v<sub>3</sub>)</i>. This cannot depend on the direction, meaning it depends only on the magnitude squared (v<sub>1</sub>&sup2; + v<sub>2</sub>&sup2; + v<sub>3</sub>&sup2;). Thus, for some function <i>g</i>:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            f(v<sub>1</sub>)f(v<sub>2</sub>)f(v<sub>3</sub>) = g(v<sub>1</sub>&sup2; + v<sub>2</sub>&sup2; + v<sub>3</sub>&sup2;)
+        </div>
+        <p>Assuming <i>f</i> is differentiable, we differentiate both sides partially with respect to v<sub>i</sub>:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            f'(v<sub>1</sub>)f(v<sub>2</sub>)f(v<sub>3</sub>) / v<sub>1</sub> = f(v<sub>1</sub>)f'(v<sub>2</sub>)f(v<sub>3</sub>) / v<sub>2</sub><br>
+            f'(v<sub>1</sub>) / (v<sub>1</sub> f(v<sub>1</sub>)) = f'(v<sub>2</sub>) / (v<sub>2</sub> f(v<sub>2</sub>))
+        </div>
+        <p>Since v<sub>1</sub> and v<sub>2</sub> are arbitrary, this ratio must equal a constant, <i>k</i>. Solving the differential equation <i>f'(x) / (x f(x)) = k</i> yields:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            log f(x) = kx&sup2;/2 + C <br>
+            f(x) &prop; e<sup>kx&sup2;/2</sup>
+        </div>
+        <p>To formally identify this distribution, we compare it to the probability density function of a Normal Distribution, N(&mu;, &sigma;&sup2;):</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            f(x) = (1 / &radic;(2&pi;&sigma;&sup2;)) * e<sup>-(x - &mu;)&sup2; / (2&sigma;&sup2;)</sup>
+        </div>
+        <p>By comparing the exponents, it is clear that &mu; = 0. Furthermore, the coefficient of x&sup2; gives us <i>k/2 = -1/(2&sigma;&sup2;)</i>, which means &sigma;&sup2; = -1/k. Since <i>f</i> is a density, its total integral must be 1, requiring <i>k < 0</i>. Therefore, the velocity exactly follows a <strong>N(0, -1/k)</strong> distribution.</p>
+
+        <h3>3. Newtonian Mechanics and Pressure</h3>
+        <p>To find the constant <i>k</i>, we evaluate the pressure exerted by the gas using pure Newtonian mechanics. Consider a cubical element of side length <i>L</i> and volume <i>V = L&sup3;</i>. A particle of mass <i>m</i> moving with velocity v<sub>x</sub> collides elastically with the wall and bounces back.</p>
+        <p>The change in momentum is &Delta;p = mv<sub>x</sub> - (-mv<sub>x</sub>) = 2mv<sub>x</sub>. The particle must travel distance 2L (back and forth) before hitting the same wall again, so the time between collisions is &Delta;t = 2L / v<sub>x</sub>. By Newton's Second Law, the average force exerted by this single particle is:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            F = &Delta;p / &Delta;t = (2mv<sub>x</sub>) / (2L / v<sub>x</sub>) = mv<sub>x</sub>&sup2; / L
+        </div>
+        <p>The total pressure <i>P</i> is the total force of all <i>N<sub>total</sub></i> particles divided by the wall's area (A = L&sup2;). We use the mean square velocity &overline;v<sub>x</sub>&sup2; to represent the average over all particles:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            P = (N<sub>total</sub> * m * &overline;v<sub>x</sub>&sup2; / L) / L&sup2; = (N<sub>total</sub> m &overline;v<sub>x</sub>&sup2;) / V
+        </div>
+        <p>Equating this with the macroscopic Ideal Gas Law (PV = N<sub>total</sub> k<sub>B</sub> T):</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            (N<sub>total</sub> m &overline;v<sub>x</sub>&sup2;) / V = (N<sub>total</sub> k<sub>B</sub> T) / V<br>
+            m &overline;v<sub>x</sub>&sup2; = k<sub>B</sub> T <br>
+            &overline;v<sub>x</sub>&sup2; = (k<sub>B</sub> T) / m
+        </div>
+        <p>From our N(0, -1/k) distribution, the variance is strictly equal to the mean square velocity &overline;v<sub>x</sub>&sup2;. Therefore, -1/k = (k<sub>B</sub> T) / m, which solves to <strong>k = -m / (k<sub>B</sub> T)</strong>.</p>
+
+        <h3>4. Projectile Kinematics</h3>
+        <p>Once a particle exits the thermal chamber at height <i>H</i>, thermodynamics ends and deterministic kinematics takes over. We calculate the time of flight using Newton's second equation of motion:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            s = ut + &frac12;at&sup2;
+        </div>
+        <p>In the vertical direction, the initial velocity is zero (u<sub>y</sub> = 0), the acceleration is downward gravity (a = g), and the displacement is the height of the fall (s = H). Substituting these values:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            H = 0 * t + &frac12;gt&sup2;<br>
+            H = &frac12;gt&sup2;<br>
+            t = &radic;(2H / g)
+        </div>
+        <p>In the horizontal direction, gravity exerts no force, meaning the horizontal acceleration is zero (a<sub>x</sub> = 0). Thus, the horizontal velocity v<sub>x</sub> remains perfectly constant throughout the flight. The final landing range <i>X</i> is the horizontal velocity multiplied by the time of flight:</p>
+        <div class="math-block" style="background: #000; padding: 15px; border-radius: 6px; font-family: monospace; color: #10b981; margin: 15px 0;">
+            X = v<sub>x</sub> * t = v<sub>x</sub> * &radic;(2H / g)
+        </div>
+    </section>
+    
     <script>
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
