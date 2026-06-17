@@ -214,8 +214,8 @@
         
         <p>From our $N(0, -1/k)$ distribution, the variance is strictly equal to the mean square velocity $\overline{v_x^2}$. Therefore, $-\frac{1}{k} = \frac{k_B T}{m}$, which solves to <strong>$k = -\frac{m}{k_B T}$</strong>.</p>
 
-        <h3>4. Projectile Kinematics</h3>
-        <p>Once a particle exits the thermal chamber at height $H$, thermodynamics ends and deterministic kinematics takes over. We calculate the time of flight using Newton's second equation of motion:</p>
+        <h3>4. The Setup: Vacuum, Slits, and Kinematics</h3>
+        <p>Imagine a thermal chamber placed in a perfect vacuum (to prevent air resistance and Brownian scattering). The chamber features two tiny slits on opposite sides at height $H$. Once a particle exits either slit, thermodynamics ends and deterministic kinematics takes over. We calculate the time of flight using Newton's second equation of motion:</p>
         
         $$ s = ut + \frac{1}{2}at^2 $$
         
@@ -227,8 +227,10 @@
         
         $$ X = v_x \cdot t = v_x \sqrt{\frac{2H}{g}} $$
         
-        <h3>5. Note on Visualization & The Missing Central Bin</h3>
-        <p>To construct a seamless continuous distribution, the central gas cannon is designed to be exactly one histogram bin wide. Particles are emitted from the left and right edges of this single bin. This guarantees that only the $x=0$ bin remains unoccupied (representing the physical slit), while the rest of the distribution forms symmetrically. Furthermore, the vertical bars represent mathematical frequency tallies, not physical solid obstacles. Falling particles visually pass through these transparent statistical bars to reach the detector floor, and the bars are allowed to scale vertically past the height of the cannon without any physical interference.</p>
+        <h3>5. Note on Visualization: The Missing Central Bin</h3>
+        <p>To construct a seamless continuous distribution, the central gas cannon is designed to have a thickness of exactly one histogram bin ($\delta$). Particles are emitted from the left and right slits located at the edges of this single bin.</p>
+        <p>Why do we do this? If the container were arbitrary in size, there would be a massive, unnatural physical gap in the center of our statistical bell curve. By setting the container width to exactly one bin width, we guarantee that only the exact central bin ($x=0$) remains unoccupied. The particles naturally stack in the adjacent bins, allowing the rest of the Normal distribution to form symmetrically and seamlessly.</p>
+        <p>Furthermore, the vertical bars represent mathematical frequency tallies, not physical solid obstacles. Falling particles visually pass through these transparent statistical bars to reach the detector floor, and the bars are allowed to scale vertically past the height of the cannon without any physical interference.</p>
     </section>
 
     <script>
