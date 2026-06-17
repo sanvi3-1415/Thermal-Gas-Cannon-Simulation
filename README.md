@@ -1,5 +1,7 @@
 # Thermal Gas Cannon Experiment
 
+See the simulation here 👉: https://thermal-gas-cannon-simulation.vercel.app/
+
 **Visualizing the Maxwell Velocity Distribution via Projectile Kinematics**
 
 This project visually demonstrates how the chaotic, invisible thermal velocities of an ideal gas adhere to a Normal Distribution. By allowing gas to escape a thermal bath in a vacuum and subjecting it to gravity, we physically map velocity directly to spatial distance.
