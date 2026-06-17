@@ -1,1 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermal Gas Cannon & Maxwell Distribution</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #f8fafc;
+            --accent: #38bdf8;
+            --curve: #f59e0b;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        header {
+            background: #020617;
+            padding: 20px 40px;
+            border-bottom: 2px solid #334155;
+            text-align: center;
+        }
+        h1 { margin: 0; color: var(--accent); }
+        .subtitle { color: #94a3b8; font-size: 1.1rem; }
+        
+        #sim-section {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        #canvas-container {
+            flex: 3;
+            min-width: 600px;
+            background: #000;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        canvas { display: block; width: 100%; height: 500px; }
+        
+        #controls {
+            flex: 1;
+            min-width: 300px;
+            background: var(--panel);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            color: var(--text);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .control-group input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+        .btn:hover { background: #7dd3fc; }
+        .btn-reset { background: transparent; border: 1px solid #475569; color: var(--text); }
+        .btn-reset:hover { background: #334155; }
 
+        .stat-box { background: #0f172a; padding: 10px; border-radius: 6px; font-family: monospace; color: var(--accent); font-size: 1.2rem; text-align: center; border-left: 4px solid var(--accent); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Thermal Gas Cannon Experiment</h1>
+        <div class="subtitle">Visualizing the Maxwell Velocity Distribution via Projectile Kinematics</div>
+    </header>
+
+    <section id="sim-section">
+        <div id="canvas-container">
+            <canvas id="simCanvas"></canvas>
+            <div style="position: absolute; top: 10px; left: 10px; color: #64748b; font-family: monospace;">Vacuum Environment (Quasi-static Effusion)</div>
+            <div style="position: absolute; bottom: 10px; right: 10px; color: #64748b; font-family: monospace;">Detector Floor</div>
+        </div>
+        
+        <div id="controls">
+            <div class="stat-box">
+                Particles Hit: <span id="lblCount">0</span>
+            </div>
+
+            <div class="control-group">
+                <label>Temperature (T) <span>[ Kelvin ]</span></label>
+                <input type="number" id="slTemp" min="1" value="300">
+            </div>
+            
+            <div class="control-group">
+                <label>Gas Mass (m) <span>[ Atomic Mass ]</span></label>
+                <input type="number" id="slMass" min="0.1" step="0.1" value="10">
+            </div>
+
+            <div class="control-group">
+                <label>Gravity (g) <span>[ m/s² ]</span></label>
+                <input type="number" id="slGrav" min="0.1" step="0.1" value="9.8">
+            </div>
+
+            <div class="control-group">
+                <label>Total Particles (N) <span>[ Count ]</span></label>
+                <input type="number" id="slTotal" min="1" value="2000">
+            </div>
+
+            <button class="btn" id="btnPlay">Pause Simulation</button>
+            <button class="btn btn-reset" id="btnReset">Clear Floor & Reset</button>
+
+            <div style="margin-top: 10px; font-size: 0.85rem; color: #94a3b8;">
+                <span style="display:inline-block; width:12px; height:12px; background:#10b981;"></span> Physical Particle Stack<br>
+                <span style="display:inline-block; width:12px; height:12px; background:var(--curve); margin-top:5px;"></span> Theoretical Normal Curve
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const slTemp = document.getElementById('slTemp');
+        const slMass = document.getElementById('slMass');
+        const slGrav = document.getElementById('slGrav');
+        const slTotal = document.getElementById('slTotal');
+        const lblCount = document.getElementById('lblCount');
+        
+        let width, height;
+        let CANNON_X;
+        let FLOOR_Y;
+        let CANNON_Y;
+        
+        let isRunning = true;
+        let totalDropped = 0;
+        let animationId;
+        
+        let activeParticles = [];
+        const MAX_ACTIVE = 150; 
+        
+        const NUM_BINS = 121;
+        let bins = [];
+        let binWidth;
+        let maxBinCount = 0;
+        let fixedRenderScale = 3;
+
+        function calculateFixedScale() {
+            const temp = parseFloat(slTemp.value);
+            const mass = parseFloat(slMass.value);
+            const grav = parseFloat(slGrav.value);
+            const maxTotal = parseInt(slTotal.value);
+
+            const H = FLOOR_Y - CANNON_Y;
+            const flightTime = Math.sqrt((2 * H) / (grav * 0.05));
+            const varianceVx = (temp / mass) * 0.05;
+            const varianceX = varianceVx * (flightTime * flightTime);
+            const stdDevX = Math.sqrt(varianceX);
+
+            const pdfMax = 1 / (stdDevX * Math.sqrt(2 * Math.PI));
+            let expectedMaxCount = maxTotal * pdfMax * binWidth;
+            expectedMaxCount = expectedMaxCount * 1.15;
+
+            const maxTargetPixelHeight = height - 50; 
+            
+            if (expectedMaxCount > 0) {
+                fixedRenderScale = maxTargetPixelHeight / expectedMaxCount;
+            } else {
+                fixedRenderScale = 3;
+            }
+        }
+
+        function resize() {
+            width = canvas.parentElement.clientWidth;
+            height = 500; 
+            canvas.width = width;
+            canvas.height = height;
+            
+            CANNON_X = width / 2; 
+            CANNON_Y = 80;
+            FLOOR_Y = height - 40;
+            binWidth = width / NUM_BINS;
+            
+            calculateFixedScale();
+
+            if(bins.length !== NUM_BINS) resetSim();
+        }
+
+        window.addEventListener('resize', resize);
+
+        function randomNormal() {
+            let u1 = 0, u2 = 0;
+            while(u1 === 0) u1 = Math.random();
+            while(u2 === 0) u2 = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        }
+
+        class Particle {
+            constructor(temp, mass, gravity) {
+                const scaleK = 0.05; 
+                const variance = (temp / mass) * scaleK;
+                const stdDev = Math.sqrt(variance);
+                
+                this.vx = randomNormal() * stdDev;
+                this.vy = 0; 
+                this.size = 2;
+
+                const halfBin = binWidth / 2;
+                let startX = CANNON_X + (this.vx >= 0 ? halfBin : -halfBin);
+                let startY = CANNON_Y;
+
+                const dtFraction = Math.random(); 
+                this.vy += (gravity * 0.05) * dtFraction;
+                this.x = startX + (this.vx * dtFraction);
+                this.y = startY + (this.vy * dtFraction);
+            }
+
+            update(gravity) {
+                this.vy += gravity * 0.05; 
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.8)'; 
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+
+        function resetSim() {
+            bins = new Array(NUM_BINS).fill(0);
+            activeParticles = [];
+            totalDropped = 0;
+            maxBinCount = 0;
+            const maxTotal = document.getElementById('slTotal').value;
+            lblCount.innerText = "0 / " + maxTotal;
+            ctx.clearRect(0, 0, width, height);
+            calculateFixedScale(); 
+            drawStaticEnvironment();
+        }
+
+        function drawStaticEnvironment() {
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, FLOOR_Y);
+            ctx.lineTo(width, FLOOR_Y);
+            ctx.stroke();
+
+            const halfBin = binWidth / 2;
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(CANNON_X - halfBin, 0, binWidth, CANNON_Y + 10);
+            
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(CANNON_X - halfBin - 2, CANNON_Y - 5, 4, 10); 
+            ctx.fillRect(CANNON_X + halfBin - 2, CANNON_Y - 5, 4, 10); 
+        }
+
+        function drawHistogram() {
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.7)'; 
+            
+            for(let i = 0; i < NUM_BINS; i++) {
+                if(bins[i] > 0) {
+                    let barHeight = bins[i] * fixedRenderScale;
+                    let startX = (i * binWidth);
+                    ctx.fillRect(startX, FLOOR_Y - barHeight, binWidth - 1, barHeight);
+                }
+            }
+        }
+
+        function drawTheoreticalCurve(temp, mass, gravity) {
+            const H = FLOOR_Y - CANNON_Y;
+            const flightTime = Math.sqrt((2 * H) / (gravity * 0.05));
+            
+            const scaleK = 0.05;
+            const varianceVx = (temp / mass) * scaleK;
+            const varianceX = varianceVx * (flightTime * flightTime);
+            const stdDevX = Math.sqrt(varianceX);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#f59e0b'; 
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]); 
+
+            for(let x = 0; x < width; x += 5) {
+                let relX = x - CANNON_X;
+                const exponent = -(relX * relX) / (2 * varianceX);
+                const pdf = (1 / (stdDevX * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+                
+                const expectedParticles = totalDropped * pdf * binWidth;
+                const curveHeight = expectedParticles * fixedRenderScale;
+
+                const plotY = FLOOR_Y - curveHeight;
+
+                if(x === 0) ctx.moveTo(x, plotY);
+                else ctx.lineTo(x, plotY);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]); 
+        }
+
+        function animate() {
+            if (!isRunning) return;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const temp = parseFloat(slTemp.value);
+            const mass = parseFloat(slMass.value);
+            const grav = parseFloat(slGrav.value);
+            const maxTotal = parseInt(slTotal.value);
+
+            let spawnRate = Math.max(3, Math.min(50, Math.ceil(maxTotal / 300)));
+
+            if (activeParticles.length < MAX_ACTIVE && (totalDropped + activeParticles.length) < maxTotal) {
+                for(let i=0; i < spawnRate; i++) {
+                    if ((totalDropped + activeParticles.length) < maxTotal) {
+                        activeParticles.push(new Particle(temp, mass, grav));
+                    }
+                }
+            }
+
+            for (let i = activeParticles.length - 1; i >= 0; i--) {
+                let p = activeParticles[i];
+                p.update(grav);
+                
+                if (p.y >= FLOOR_Y) {
+                    let binIndex = Math.floor(p.x / binWidth);
+                    
+                    if (binIndex >= 0 && binIndex < NUM_BINS) {
+                        bins[binIndex]++;
+                        if(bins[binIndex] > maxBinCount) maxBinCount = bins[binIndex];
+                        totalDropped++;
+                        lblCount.innerText = totalDropped + " / " + maxTotal;
+                    }
+                    
+                    activeParticles.splice(i, 1);
+                } else {
+                    p.draw();
+                }
+            }
+
+            drawHistogram();
+            drawTheoreticalCurve(temp, mass, grav);
+            drawStaticEnvironment(); 
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        document.getElementById('btnPlay').addEventListener('click', (e) => {
+            isRunning = !isRunning;
+            e.target.innerText = isRunning ? "Pause Simulation" : "Resume Simulation";
+            if(isRunning) animate();
+        });
+
+        document.getElementById('btnReset').addEventListener('click', resetSim);
+
+        slTemp.addEventListener('input', resetSim);
+        slMass.addEventListener('input', resetSim);
+        slGrav.addEventListener('input', resetSim);
+        slTotal.addEventListener('input', resetSim);
+
+        resize();
+        animate();
+    </script>
+</body>
+</html>
