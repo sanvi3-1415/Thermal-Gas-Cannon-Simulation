@@ -6,55 +6,71 @@ This project visually demonstrates how the chaotic, invisible thermal velocities
 
 ## ⚙️ Interactive Simulation
 
-You can run the live interactive simulation by opening `index.html` in any modern web browser. 
-
-The simulation allows you to dynamically adjust:
-* **Temperature ($T$)**
-* **Gas Particle Mass ($m$)**
-* **Gravity ($g$)**
-* **Total Particle Count ($N$)**
+You can run the live interactive simulation by opening `index.html` in any modern web browser. The simulation allows you to dynamically adjust Temperature ($T$), Gas Particle Mass ($m$), Gravity ($g$), and Total Particle Count ($N$).
 
 ## 📚 Theoretical Framework & Derivation
 
-### 1. The Origin of Pressure (Kinetic Theory)
-Before applying statistics, we must derive the physical meaning of Temperature from pure Newtonian mechanics. Imagine a cubical container of side length $L$ and volume $V$. A single particle of mass $m$ moving with horizontal velocity $v_x$ bounces elastically off the wall.
+### 1. Visualization & Graph Scaling
+The vertical bars in the simulation represent physical counts (frequencies) of particles, not direct probabilities. To accurately compare the theoretical Normal distribution to the physical histogram, we must scale the probability density function, $f(x)$.
 
-The change in momentum during the collision is $\Delta p = 2mv_x$. The time between collisions with the same wall is $\Delta t = 2L / v_x$. By Newton's Second Law, the force exerted by one particle is:
+For a continuous probability density function, the probability of a particle landing in a small interval of width $\delta$ (the bar size) is approximately the area under the curve in that interval: **Probability $\approx f(x) \times \delta$**.
 
-$$F = \frac{\Delta p}{\Delta t} = \frac{2mv_x}{2L/v_x} = \frac{m v_x^2}{L}$$
+In statistics, **Relative Frequency** is defined as the number of successful observations (particles in a specific bar, $n$) divided by the total number of trials (total particles dropped, $N$). By the Law of Large Numbers, relative frequency approaches probability as $N$ increases:
 
-Summing the forces of all $N$ particles and dividing by the area $A = L^2$ gives the macroscopic Pressure $P$. We use the "mean square velocity" $\overline{v_x^2}$ to represent the average of all particles:
+$$\text{Relative Frequency} = \frac{n}{N} \approx \text{Probability}$$
+$$\frac{n}{N} \approx f(x) \times \delta$$
+$$n \approx N \times f(x) \times \delta$$
 
-$$P = \frac{F_{total}}{A} = \frac{N m \overline{v_x^2}}{L^3} = \frac{N m \overline{v_x^2}}{V}$$
+Therefore, the dotted curve plots the expected count: $N \times f(x) \times \text{bar size}$. This allows the mathematical envelope to grow dynamically alongside the accumulating particles.
 
-### 2. Finding the Maxwell Constant '$k$'
-The Ideal Gas Law is observationally known to be $PV = N k_B T$, where $k_B$ is the Boltzmann constant. By equating this with our mechanical derivation of pressure, we find:
+### 2. The Velocity Distribution
+Imagine a gas without any overall flow. The molecules are moving randomly. To find the distribution of velocities, we set up three axes $x$, $y$, and $z$. The velocity is expressed as $(V_1, V_2, V_3)$. Since there is no overall flow and no favored direction, $V_1, V_2$, and $V_3$ must be independent and identically distributed (IID).
 
-$$\frac{N m \overline{v_x^2}}{V} = \frac{N k_B T}{V}$$
+Assuming each $V_i$ has a density $f$, the joint density is $f(v_1)f(v_2)f(v_3)$. This cannot depend on the direction, meaning it depends only on the magnitude squared $(v_1^2 + v_2^2 + v_3^2)$. Thus, for some function $g$:
 
-$$m \overline{v_x^2} = k_B T \implies \overline{v_x^2} = \frac{k_B T}{m}$$
+$$f(v_1)f(v_2)f(v_3) = g(v_1^2 + v_2^2 + v_3^2)$$
 
-From probability theory, if the gas velocity is perfectly random and symmetric, the distribution of $v_x$ must be a Normal Distribution centered at 0. The probability density function is known to take the form $f(x) \propto e^{kx^2/2}$. In probability, the variance of this distribution is strictly $-1/k$.
+Assuming $f$ is differentiable, we differentiate both sides partially with respect to $v_i$:
 
-Since the mean velocity is 0, the Variance is exactly equal to the Mean Square Velocity ($\overline{v_x^2}$). Therefore:
+$$\frac{f'(v_1)f(v_2)f(v_3)}{v_1} = \frac{f(v_1)f'(v_2)f(v_3)}{v_2}$$
+$$\frac{f'(v_1)}{v_1 f(v_1)} = \frac{f'(v_2)}{v_2 f(v_2)}$$
 
-$$\text{Variance} = \overline{v_x^2} = -\frac{1}{k}$$
+Since $v_1$ and $v_2$ are arbitrary, this ratio must equal a constant, $k$. Solving the differential equation $\frac{f'(x)}{x f(x)} = k$ yields:
 
-$$\frac{k_B T}{m} = -\frac{1}{k} \implies k = -\frac{m}{k_B T}$$
+$$\log f(x) = \frac{kx^2}{2} + C \implies f(x) \propto e^{kx^2/2}$$
 
-Substituting $k$ back into the density function yields the exact Maxwell Distribution for 1D velocity!
+To formally identify this distribution, we compare it to the probability density function of a Normal Distribution, $N(\mu, \sigma^2)$:
 
-### 3. The Physical Mapping (Simulation Logic)
-In the simulation, particles are fired horizontally from height $H$. Once they leave the slit, they are purely Newtonian projectiles. The vertical time of flight is identical for every particle:
+$$f(x) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}$$
 
-$$t = \sqrt{\frac{2H}{g}}$$
+By comparing the exponents, it is clear that $\mu = 0$. Furthermore, the coefficient of $x^2$ gives us $\frac{k}{2} = -\frac{1}{2\sigma^2}$, which means $\sigma^2 = -1/k$. Since $f$ is a density, its total integral must be $1$, requiring $k < 0$. Therefore, the velocity exactly follows a **$N(0, -1/k)$** distribution.
 
-The horizontal landing distance $X$ is simply the thermal velocity multiplied by this constant time:
+### 3. Newtonian Mechanics and Pressure
+To find the constant $k$, we evaluate the pressure exerted by the gas using pure Newtonian mechanics. Consider a cubical element of side length $L$ and volume $V = L^3$. A particle of mass $m$ moving with velocity $v_x$ collides elastically with the wall and bounces back.
 
-$$X = v_x \cdot \sqrt{\frac{2H}{g}}$$
+The change in momentum is $\Delta p = mv_x - (-mv_x) = 2mv_x$. The particle must travel distance $2L$ (back and forth) before hitting the same wall again, so the time between collisions is $\Delta t = \frac{2L}{v_x}$. By Newton's Second Law, the average force exerted by this single particle is:
 
-A fundamental theorem of statistics states that multiplying a Normally distributed variable ($v_x$) by a constant ($\sqrt{2H/g}$) results in another Normal Distribution. The simulation physically constructs this: the height of the particle stacks on the floor forms a perfect spatial bell curve.
+$$F = \frac{\Delta p}{\Delta t} = \frac{2mv_x}{2L / v_x} = \frac{mv_x^2}{L}$$
 
-### 🔍 A Note on Visualization
-* **The Dynamic Curve:** The dotted orange line does not plot the raw probability density function $f(x)$ (which always has a total area of 1). Since the physical bars represent the absolute count of particles, the mathematical curve is scaled to match. The curve plots the expected count per bin: **$\text{Expected Count} = N \times f(x) \times \text{bin width}$**.
-* **The Central Bin:** The central gas cannon is designed to be exactly one histogram bin wide. Particles are emitted from the left and right edges. This guarantees that only the $x=0$ bin remains unoccupied, while the rest of the distribution forms symmetrically. The vertical bins represent mathematical frequency tallies, not solid obstacles, allowing particles to visually pass through them.
+The total pressure $P$ is the total force of all $N_{total}$ particles divided by the wall's area ($A = L^2$). We use the mean square velocity $\overline{v_x^2}$ to represent the average over all particles:
+
+$$P = \frac{N_{total} \cdot m \cdot \overline{v_x^2} / L}{L^2} = \frac{N_{total} m \overline{v_x^2}}{V}$$
+
+Equating this with the macroscopic Ideal Gas Law ($PV = N_{total} k_B T$):
+
+$$\frac{N_{total} m \overline{v_x^2}}{V} = \frac{N_{total} k_B T}{V} \implies m \overline{v_x^2} = k_B T \implies \overline{v_x^2} = \frac{k_B T}{m}$$
+
+From our $N(0, -1/k)$ distribution, the variance is strictly equal to the mean square velocity $\overline{v_x^2}$. Therefore, $-\frac{1}{k} = \frac{k_B T}{m}$, which solves to **$k = -\frac{m}{k_B T}$**.
+
+### 4. Projectile Kinematics
+Once a particle exits the thermal chamber at height $H$, thermodynamics ends and deterministic kinematics takes over. We calculate the time of flight using Newton's second equation of motion:
+
+$$s = ut + \frac{1}{2}at^2$$
+
+In the vertical direction, the initial velocity is zero ($u_y = 0$), the acceleration is downward gravity ($a = g$), and the displacement is the height of the fall ($s = H$). Substituting these values:
+
+$$H = 0 \cdot t + \frac{1}{2}gt^2 \implies t = \sqrt{\frac{2H}{g}}$$
+
+In the horizontal direction, gravity exerts no force, meaning the horizontal acceleration is zero ($a_x = 0$). Thus, the horizontal velocity $v_x$ remains perfectly constant throughout the flight. The final landing range $X$ is the horizontal velocity multiplied by the time of flight:
+
+$$X = v_x \cdot t = v_x \sqrt{\frac{2H}{g}}$$
