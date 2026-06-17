@@ -74,3 +74,6 @@ $$H = 0 \cdot t + \frac{1}{2}gt^2 \implies t = \sqrt{\frac{2H}{g}}$$
 In the horizontal direction, gravity exerts no force, meaning the horizontal acceleration is zero ($a_x = 0$). Thus, the horizontal velocity $v_x$ remains perfectly constant throughout the flight. The final landing range $X$ is the horizontal velocity multiplied by the time of flight:
 
 $$X = v_x \cdot t = v_x \sqrt{\frac{2H}{g}}$$
+
+### 5. Note on Visualization & The Missing Central Bin
+To construct a seamless continuous distribution, the central gas cannon is designed to be exactly one histogram bin wide. Particles are emitted from the left and right edges of this single bin. This guarantees that only the $x=0$ bin remains unoccupied (representing the physical slit), while the rest of the distribution forms symmetrically. Furthermore, the vertical bars represent mathematical frequency tallies, not physical solid obstacles. Falling particles visually pass through these transparent statistical bars to reach the detector floor, and the bars are allowed to scale vertically past the height of the cannon without any physical interference.
